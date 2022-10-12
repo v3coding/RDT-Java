@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="rdt.TestClient" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="openjdk-18" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="MAIN_CLASS_NAME" value="rdt.TestClient" />
+    <module name="A2" />
+    <option name="PROGRAM_PARAMETERS" value="127.0.0.1 42069 42000" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="rdt.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
