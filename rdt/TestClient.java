@@ -21,7 +21,7 @@ public class TestClient {
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		 if (args.length != 3) {
 	         System.out.println("Required arguments: dst_hostname dst_port local_port");
 	         return;

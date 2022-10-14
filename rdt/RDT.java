@@ -5,10 +5,20 @@
  */
 package rdt;
 
+//import java.io.*;
+//import java.net.*;
+//import java.util.*;
+//import java.util.concurrent.*;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+
 
 public class RDT {
 
@@ -78,15 +88,16 @@ public class RDT {
 	
 	// called by app
 	// returns total number of sent bytes  
-	public int send(byte[] data, int size) {
-		
+	public int send(byte[] data, int size) throws IOException {
+
 		//****** complete
 		System.out.print("sending\n");
 		String PooString = "my poopoo is very stink";
 		byte[]stinkArray = new byte[501];
 		stinkArray = PooString.getBytes();
-		DatagramPacket pooPacket = new DatagramPacket(stinkArray,500);
-		socket.send();
+		DatagramPacket pooPacket = new DatagramPacket(stinkArray,stinkArray.length,dst_ip,dst_port);
+		System.out.print("Ohhh noo I'm gonna sennd!: " + PooString);
+		socket.send(pooPacket);
 		// divide data into segments
 		
 		// put each segment into sndBuf
@@ -102,10 +113,14 @@ public class RDT {
 	// called by app
 	// receive one segment at a time
 	// returns number of bytes copied in buf
-	public int receive (byte[] buf, int size)
-	{
+	public int receive (byte[] buf, int size) throws IOException {
+		//receive shit and put it in to a buffer
 		//*****  complete
-		System.out.print("receiving OKAY??\n");
+		System.out.print("receiving OKAY??..\n");
+		DatagramPacket pooReceive = new DatagramPacket(buf, size);
+		socket.receive(pooReceive);
+		String printString = pooReceive.toString();
+		System.out.print("I just received THIS message : " + printString);
 		return 0;   // fix
 	}
 	
@@ -194,7 +209,34 @@ class ReceiverThread extends Thread {
 		dst_port = dst_port_;
 	}	
 	public void run() {
-		
+		//call receieve over and over and store shit
+
+		//receive shit and put it in to a buffer
+		//*****  complete
+		//System.out.print("receiving OKAY??..\n");
+		//DatagramPacket pooReceive = new DatagramPacket(buf, size);
+		//socket.receive(pooReceive);
+		//printf("I just received THIS message : ",data(pooReceive).toString());
+		//return 0;   // fix
+
+		byte[] receive = new byte[65535];
+		DatagramPacket DpReceive = new DatagramPacket(receive,receive.length);
+		String printString;
+
+		while(true){
+			try {
+				socket.receive(DpReceive);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			printString = DpReceive.toString();
+			System.out.print("I just received THIS message : " + printString);
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
 		// *** complete 
 		// Essentially:  while(cond==true){  // may loop for ever if you will not implement RDT::close()  
 		//                socket.receive(pkt)

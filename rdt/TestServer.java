@@ -8,6 +8,7 @@ package rdt;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class TestServer {
 
@@ -39,6 +40,7 @@ public class TestServer {
 	    		 System.out.print(buf[i]);
 	    	 System.out.println(" ");
 	    	 System.out.flush();
+			 TimeUnit.SECONDS.sleep(1);
 	     } 
 	}
 }
