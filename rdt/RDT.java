@@ -19,6 +19,8 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import static rdt.Utility.udp_send;
+
 
 public class RDT {
 
@@ -37,7 +39,9 @@ public class RDT {
 	private DatagramSocket socket; 
 	private InetAddress dst_ip;
 	private int dst_port;
-	private int local_port; 
+	private int local_port;
+
+	public int currentSequence;
 	
 	private RDTBuffer sndBuf;
 	private RDTBuffer rcvBuf;
@@ -61,7 +65,7 @@ public class RDT {
 		else 
 			rcvBuf = new RDTBuffer(MAX_BUF_SIZE);
 		rcvThread = new ReceiverThread(rcvBuf, sndBuf, socket, dst_ip, dst_port);
-		rcvThread.start();
+		//rcvThread.start();
 	}
 	
 	RDT (String dst_hostname_, int dst_port_, int local_port_, int sndBufSize, int rcvBufSize)
@@ -81,7 +85,7 @@ public class RDT {
 			rcvBuf = new RDTBuffer(rcvBufSize);
 		
 		rcvThread = new ReceiverThread(rcvBuf, sndBuf, socket, dst_ip, dst_port);
-		rcvThread.start();
+		//rcvThread.start();
 	}
 	
 	public static void setLossRate(double rate) {lossRate = rate;}
@@ -89,23 +93,19 @@ public class RDT {
 	// called by app
 	// returns total number of sent bytes  
 	public int send(byte[] data, int size) throws IOException {
-
+		byte[] sendingByteArray = new byte[125];
+		RDTBuffer buffer = new RDTBuffer(125);
+		RDTSegment sendFrame = new RDTSegment();
+		currentSequence++;
+		sendFrame.seqNum = currentSequence;
+		sendFrame.ackNum = 0;
+		udp_send(sendFrame,socket,dst_ip,dst_port);
+		new TimeoutHandler(buffer,sendFrame,socket,dst_ip,dst_port);
 		//****** complete
-		System.out.print("sending\n");
-		String PooString = "my poopoo is very stink";
-		byte[]stinkArray = new byte[501];
-		stinkArray = PooString.getBytes();
-		DatagramPacket pooPacket = new DatagramPacket(stinkArray,stinkArray.length,dst_ip,dst_port);
-		System.out.print("Ohhh noo I'm gonna sennd!: " + PooString);
-		socket.send(pooPacket);
 		// divide data into segments
-		
 		// put each segment into sndBuf
-		
 		// send using udp_send()
-		
-		// schedule timeout for segment(s) 
-			
+		// schedule timeout for segment(s)
 		return size;
 	}
 	
@@ -116,13 +116,26 @@ public class RDT {
 	public int receive (byte[] buf, int size) throws IOException {
 		//receive shit and put it in to a buffer
 		//*****  complete
-		System.out.print("receiving OKAY??..\n");
+		System.out.print("receiving OKAY??..recieve function call called\n");
+
 		DatagramPacket pooReceive = new DatagramPacket(buf, size);
 		socket.receive(pooReceive);
+		RDTSegment recievedSegment = new RDTSegment();
+		makeSegment(recievedSegment,pooReceive.toString());
+
+
+
 		String printString = pooReceive.toString();
-		System.out.print("I just received THIS message : " + printString);
+		System.out.print("Recieve function just received THIS message : " + printString);
 		return 0;   // fix
 	}
+	// Essentially:  while(cond==true){  // may loop for ever if you will not implement RDT::close()
+	//                socket.receive(pkt)
+	//                seg = make a segment from the pkt
+	//                verify checksum of seg
+	//	              if seg contains ACK, process it potentailly removing segments from sndBuf
+	//                if seg contains data, put the data in rcvBuf and do any necessary
+	//                             stuff (e.g, send ACK)
 	
 	// called by app
 	public void close() {
@@ -224,13 +237,14 @@ class ReceiverThread extends Thread {
 		String printString;
 
 		while(true){
+			System.out.print("Reciever thread started\n");
 			try {
 				socket.receive(DpReceive);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 			printString = DpReceive.toString();
-			System.out.print("I just received THIS message : " + printString);
+			System.out.print("Reciever thread just received THIS message : " + printString);
 			try {
 				TimeUnit.SECONDS.sleep(1);
 			} catch (InterruptedException e) {

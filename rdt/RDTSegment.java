@@ -46,22 +46,39 @@ public class RDTSegment {
 	}
 	
 	public boolean containsAck() {
-		// complete
-		return true;
+		if(ackNum != 0){
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 	
 	public boolean containsData() {
-		// complete
-		return true;
+		if(length != 0){
+			return true;
+		}
+		return false;
 	}
 
 	public int computeChecksum() {
-		// complete
-		return 0;
+		//convert to ones compliment
+		int checksumVal = 0;
+		checksumVal = seqNum + ackNum + flags + rcvWin + length;
+		for(int i = 0; i < length; i++){
+			if(data[i] == 1){
+				checksumVal++;
+			}
+		}
+		return checksumVal;
 	}
 	public boolean isValid() {
-		// complete
-		return true;
+		if(computeChecksum() == checksum){
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 	
 	// converts this seg to a series of bytes
