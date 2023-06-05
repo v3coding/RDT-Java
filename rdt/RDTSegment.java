@@ -1,11 +1,4 @@
-/**
- * 
- * @author mohamed
- *
- */
-
 package rdt;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -16,15 +9,12 @@ public class RDTSegment {
 	public int flags;
 	public int checksum; 
 	public int rcvWin;
-	public int length;  // number of data bytes (<= MSS)
+	public int length;
 	public byte[] data;
 
 	public boolean ackReceived;
 	
-	public TimeoutHandler timeoutHandler;  // make it for every segment, 
-	                                       // will be used in selective repeat
-	
-  // constants 
+	public TimeoutHandler timeoutHandler;   
 	public static final int SEQ_NUM_OFFSET = 0;
 	public static final int ACK_NUM_OFFSET = 4;
 	public static final int FLAGS_OFFSET = 8;
@@ -81,16 +71,13 @@ public class RDTSegment {
 		}
 	}
 	
-	// converts this seg to a series of bytes
 	public void makePayload(byte[] payload) {
-		// add header 
 		Utility.intToByte(seqNum, payload, SEQ_NUM_OFFSET);
 		Utility.intToByte(ackNum, payload, ACK_NUM_OFFSET);
 		Utility.intToByte(flags, payload, FLAGS_OFFSET);
 		Utility.intToByte(checksum, payload, CHECKSUM_OFFSET);
 		Utility.intToByte(rcvWin, payload, RCV_WIN_OFFSET);
 		Utility.intToByte(length, payload, LENGTH_OFFSET);
-		//add data
 		for (int i=0; i<length; i++)
 			payload[i+HDR_SIZE] = data[i];
 	}
@@ -114,4 +101,4 @@ public class RDTSegment {
 		printData();
 	}
 	
-} // end RDTSegment class
+}

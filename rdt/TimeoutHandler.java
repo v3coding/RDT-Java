@@ -1,14 +1,7 @@
-/**
- * @author mhefeeda
- *
- */
-
 package rdt;
-
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.TimerTask;
-
 class TimeoutHandler extends TimerTask {
 	RDTBuffer sndBuf;
 	RDTSegment seg; 
@@ -43,5 +36,5 @@ class TimeoutHandler extends TimerTask {
 		}
 		
 	}
-} // end TimeoutHandler class
+}
 

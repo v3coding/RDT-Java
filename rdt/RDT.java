@@ -1,14 +1,4 @@
-
-/**
- * @author mohamed
- *
- */
 package rdt;
-
-//import java.io.*;
-//import java.net.*;
-//import java.util.*;
-//import java.util.concurrent.*;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -18,12 +8,9 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
-
 import static rdt.Utility.udp_send;
 
-
 public class RDT {
-
 	public static final int MSS = 100; // Max segement size in bytes
 	public static final int RTO = 500; // Retransmission Timeout in msec
 	public static final int ERROR = -1;
@@ -31,23 +18,17 @@ public class RDT {
 	public static final int GBN = 1;   // Go back N protocol
 	public static final int SR = 2;    // Selective Repeat
 	public static final int protocol = GBN;
-	
 	public static double lossRate = 0.0;
 	public static Random random = new Random(); 
 	public static Timer timer = new Timer();	
-	
 	private DatagramSocket socket; 
 	private InetAddress dst_ip;
 	private int dst_port;
 	private int local_port;
-
 	public int currentSequence;
-	
 	private RDTBuffer sndBuf;
 	private RDTBuffer rcvBuf;
-	
 	private ReceiverThread rcvThread;  
-	
 	
 	RDT (String dst_hostname_, int dst_port_, int local_port_) 
 	{
@@ -65,7 +46,6 @@ public class RDT {
 		else 
 			rcvBuf = new RDTBuffer(MAX_BUF_SIZE);
 		rcvThread = new ReceiverThread(rcvBuf, sndBuf, socket, dst_ip, dst_port);
-		//rcvThread.start();
 	}
 	
 	RDT (String dst_hostname_, int dst_port_, int local_port_, int sndBufSize, int rcvBufSize)
@@ -83,15 +63,10 @@ public class RDT {
 			rcvBuf = new RDTBuffer(1);
 		else 
 			rcvBuf = new RDTBuffer(rcvBufSize);
-		
 		rcvThread = new ReceiverThread(rcvBuf, sndBuf, socket, dst_ip, dst_port);
-		//rcvThread.start();
 	}
 	
 	public static void setLossRate(double rate) {lossRate = rate;}
-	
-	// called by app
-	// returns total number of sent bytes  
 	public int send(byte[] data, int size) throws IOException {
 		byte[] sendingByteArray = new byte[125];
 		RDTBuffer buffer = new RDTBuffer(125);
@@ -101,49 +76,22 @@ public class RDT {
 		sendFrame.ackNum = 0;
 		udp_send(sendFrame,socket,dst_ip,dst_port);
 		new TimeoutHandler(buffer,sendFrame,socket,dst_ip,dst_port);
-		//****** complete
-		// divide data into segments
-		// put each segment into sndBuf
-		// send using udp_send()
-		// schedule timeout for segment(s)
 		return size;
 	}
 	
-	
-	// called by app
-	// receive one segment at a time
-	// returns number of bytes copied in buf
 	public int receive (byte[] buf, int size) throws IOException {
-		//receive shit and put it in to a buffer
-		//*****  complete
 		System.out.print("receiving OKAY??..recieve function call called\n");
-
 		DatagramPacket pooReceive = new DatagramPacket(buf, size);
 		socket.receive(pooReceive);
 		RDTSegment recievedSegment = new RDTSegment();
 		makeSegment(recievedSegment,pooReceive.toString());
-
-
-
 		String printString = pooReceive.toString();
 		System.out.print("Recieve function just received THIS message : " + printString);
-		return 0;   // fix
+		return 0; 
 	}
-	// Essentially:  while(cond==true){  // may loop for ever if you will not implement RDT::close()
-	//                socket.receive(pkt)
-	//                seg = make a segment from the pkt
-	//                verify checksum of seg
-	//	              if seg contains ACK, process it potentailly removing segments from sndBuf
-	//                if seg contains data, put the data in rcvBuf and do any necessary
-	//                             stuff (e.g, send ACK)
-	
-	// called by app
 	public void close() {
-		// OPTIONAL: close the connection gracefully
-		// you can use TCP-style connection termination process
 	}
-	
-}  // end RDT class 
+}
 
 
 class RDTBuffer {
@@ -151,10 +99,9 @@ class RDTBuffer {
 	public int size;	
 	public int base;
 	public int next;
-	public Semaphore semMutex; // for mutual execlusion
-	public Semaphore semFull; // #of full slots
-	public Semaphore semEmpty; // #of Empty slots
-	
+	public Semaphore semMutex;
+	public Semaphore semFull;
+	public Semaphore semEmpty;
 	RDTBuffer (int bufSize) {
 		buf = new RDTSegment[bufSize];
 		for (int i=0; i<bufSize; i++)
@@ -165,45 +112,27 @@ class RDTBuffer {
 		semFull =  new Semaphore(0, true);
 		semEmpty = new Semaphore(bufSize, true);
 	}
-
-	
-	
-	// Put a segment in the next available slot in the buffer
 	public void putNext(RDTSegment seg) {		
 		try {
-			semEmpty.acquire(); // wait for an empty slot 
-			semMutex.acquire(); // wait for mutex 
+			semEmpty.acquire(); 
+			semMutex.acquire();
 				buf[next%size] = seg;
 				next++;  
 			semMutex.release();
-			semFull.release(); // increase #of full slots
+			semFull.release();
 		} catch(InterruptedException e) {
 			System.out.println("Buffer put(): " + e);
 		}
 	}
-	
-	// return the next in-order segment
 	public RDTSegment getNext() {
-		
-		// **** Complete
-		
-		return null;  // fix 
+		return null;
 	}
-	
-	// Put a segment in the *right* slot based on seg.seqNum
-	// used by receiver in Selective Repeat
 	public void putSeqNum (RDTSegment seg) {
-		// ***** compelte
-
 	}
-	
-	// for debugging
 	public void dump() {
 		System.out.println("Dumping the receiver buffer ...");
-		// Complete, if you want to 
-		
 	}
-} // end RDTBuffer class
+}
 
 
 
@@ -212,7 +141,6 @@ class ReceiverThread extends Thread {
 	DatagramSocket socket;
 	InetAddress dst_ip;
 	int dst_port;
-	
 	ReceiverThread (RDTBuffer rcv_buf, RDTBuffer snd_buf, DatagramSocket s, 
 			InetAddress dst_ip_, int dst_port_) {
 		rcvBuf = rcv_buf;
@@ -222,20 +150,9 @@ class ReceiverThread extends Thread {
 		dst_port = dst_port_;
 	}	
 	public void run() {
-		//call receieve over and over and store shit
-
-		//receive shit and put it in to a buffer
-		//*****  complete
-		//System.out.print("receiving OKAY??..\n");
-		//DatagramPacket pooReceive = new DatagramPacket(buf, size);
-		//socket.receive(pooReceive);
-		//printf("I just received THIS message : ",data(pooReceive).toString());
-		//return 0;   // fix
-
 		byte[] receive = new byte[65535];
 		DatagramPacket DpReceive = new DatagramPacket(receive,receive.length);
 		String printString;
-
 		while(true){
 			System.out.print("Reciever thread started\n");
 			try {
@@ -251,33 +168,16 @@ class ReceiverThread extends Thread {
 				throw new RuntimeException(e);
 			}
 		}
-		// *** complete 
-		// Essentially:  while(cond==true){  // may loop for ever if you will not implement RDT::close()  
-		//                socket.receive(pkt)
-		//                seg = make a segment from the pkt
-		//                verify checksum of seg
-		//	              if seg contains ACK, process it potentailly removing segments from sndBuf
-		//                if seg contains data, put the data in rcvBuf and do any necessary 
-		//                             stuff (e.g, send ACK)
-		//
 	}
-	
-	
-//	 create a segment from received bytes 
 	void makeSegment(RDTSegment seg, byte[] payload) {
-	
 		seg.seqNum = Utility.byteToInt(payload, RDTSegment.SEQ_NUM_OFFSET);
 		seg.ackNum = Utility.byteToInt(payload, RDTSegment.ACK_NUM_OFFSET);
 		seg.flags  = Utility.byteToInt(payload, RDTSegment.FLAGS_OFFSET);
 		seg.checksum = Utility.byteToInt(payload, RDTSegment.CHECKSUM_OFFSET);
 		seg.rcvWin = Utility.byteToInt(payload, RDTSegment.RCV_WIN_OFFSET);
 		seg.length = Utility.byteToInt(payload, RDTSegment.LENGTH_OFFSET);
-		//Note: Unlike C/C++, Java does not support explicit use of pointers! 
-		// we have to make another copy of the data
-		// This is not effecient in protocol implementation
 		for (int i=0; i< seg.length; i++)
 			seg.data[i] = payload[i + RDTSegment.HDR_SIZE]; 
 	}
-	
-} // end ReceiverThread class
+}
 
